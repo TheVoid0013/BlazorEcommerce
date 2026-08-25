@@ -17,10 +17,10 @@ namespace BlazorEcommerce.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.9")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("BlazorEcommerce.Shared.CartItem", b =>
                 {
@@ -33,10 +33,16 @@ namespace BlazorEcommerce.Data.Migrations
                     b.Property<int>("ProductTypeId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.HasKey("UserId", "ProductId", "ProductTypeId");
+
+                    b.HasIndex(new[] { "UserId", "ProductId", "ProductTypeId" }, "IX_CartItems_User_Product_ProductType_Unique")
+                        .IsUnique();
 
                     b.ToTable("CartItems");
                 });
@@ -47,17 +53,25 @@ namespace BlazorEcommerce.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Name" }, "IX_Categories_Name_Unique")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Url" }, "IX_Categories_Url_Unique")
+                        .IsUnique();
 
                     b.ToTable("Categories");
 
@@ -88,7 +102,7 @@ namespace BlazorEcommerce.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
@@ -100,6 +114,12 @@ namespace BlazorEcommerce.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "OrderDate" }, "IX_Orders_OrderDate");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_Orders_UserId");
+
+                    b.HasIndex(new[] { "UserId", "OrderDate" }, "IX_Orders_User_OrderDate");
 
                     b.ToTable("Orders");
                 });
@@ -115,13 +135,7 @@ namespace BlazorEcommerce.Data.Migrations
                     b.Property<int>("ProductTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("OrderItemOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OrderItemProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OrderItemProductTypeId")
+                    b.Property<int>("Id")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -132,11 +146,14 @@ namespace BlazorEcommerce.Data.Migrations
 
                     b.HasKey("OrderId", "ProductId", "ProductTypeId");
 
-                    b.HasIndex("ProductId");
-
                     b.HasIndex("ProductTypeId");
 
-                    b.HasIndex("OrderItemOrderId", "OrderItemProductId", "OrderItemProductTypeId");
+                    b.HasIndex(new[] { "OrderId" }, "IX_OrderItems_OrderId");
+
+                    b.HasIndex(new[] { "OrderId", "ProductId", "ProductTypeId" }, "IX_OrderItems_Order_Product_ProductType_Unique")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "ProductId" }, "IX_OrderItems_ProductId");
 
                     b.ToTable("OrderItems");
                 });
@@ -147,7 +164,7 @@ namespace BlazorEcommerce.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -161,15 +178,21 @@ namespace BlazorEcommerce.Data.Migrations
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex(new[] { "CategoryId" }, "IX_Products_CategoryId");
+
+                    b.HasIndex(new[] { "Featured" }, "IX_Products_Featured");
+
+                    b.HasIndex(new[] { "Title" }, "IX_Products_Title");
 
                     b.ToTable("Products");
 
@@ -181,7 +204,7 @@ namespace BlazorEcommerce.Data.Migrations
                             Description = "The Hitchhiker's Guide to the Galaxy[note 1] (sometimes referred to as HG2G,[1] HHGTTG,[2] H2G2,[3] or tHGttG) is a comedy science fiction franchise created by Douglas Adams. Originally a 1978 radio comedy broadcast on BBC Radio 4, it was later adapted to other formats, including novels, stage shows, comic books, a 1981 TV series, a 1984 text-based computer game, and 2005 feature film.",
                             Featured = true,
                             ImageUrl = "https://upload.wikimedia.org/wikipedia/en/b/bd/H2G2_UK_front_cover.jpg",
-                            Title = "The Hitchhiker's Huide to the Galaxy"
+                            Title = "The Hitchhiker's Guide to the Galaxy"
                         },
                         new
                         {
@@ -281,13 +304,17 @@ namespace BlazorEcommerce.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Name" }, "IX_ProductTypes_Name_Unique")
+                        .IsUnique();
 
                     b.ToTable("ProductTypes");
 
@@ -352,6 +379,9 @@ namespace BlazorEcommerce.Data.Migrations
                     b.Property<int>("ProductTypeId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("OriginalPrice")
                         .HasColumnType("decimal(18,2)");
 
@@ -360,7 +390,12 @@ namespace BlazorEcommerce.Data.Migrations
 
                     b.HasKey("ProductId", "ProductTypeId");
 
-                    b.HasIndex("ProductTypeId");
+                    b.HasIndex(new[] { "ProductId" }, "IX_ProductVariants_ProductId");
+
+                    b.HasIndex(new[] { "ProductTypeId" }, "IX_ProductVariants_ProductTypeId");
+
+                    b.HasIndex(new[] { "ProductId", "ProductTypeId" }, "IX_ProductVariants_Product_ProductType_Unique")
+                        .IsUnique();
 
                     b.ToTable("ProductVariants");
 
@@ -369,6 +404,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 1,
                             ProductTypeId = 2,
+                            Id = 0,
                             OriginalPrice = 19.99m,
                             Price = 9.99m
                         },
@@ -376,6 +412,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 1,
                             ProductTypeId = 3,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 7.99m
                         },
@@ -383,6 +420,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 1,
                             ProductTypeId = 4,
+                            Id = 0,
                             OriginalPrice = 29.99m,
                             Price = 19.99m
                         },
@@ -390,6 +428,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 2,
                             ProductTypeId = 2,
+                            Id = 0,
                             OriginalPrice = 14.99m,
                             Price = 7.99m
                         },
@@ -397,6 +436,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 3,
                             ProductTypeId = 2,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 6.99m
                         },
@@ -404,6 +444,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 4,
                             ProductTypeId = 5,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 3.99m
                         },
@@ -411,6 +452,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 4,
                             ProductTypeId = 6,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 9.99m
                         },
@@ -418,6 +460,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 4,
                             ProductTypeId = 7,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 19.99m
                         },
@@ -425,6 +468,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 5,
                             ProductTypeId = 5,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 3.99m
                         },
@@ -432,6 +476,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 6,
                             ProductTypeId = 5,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 2.99m
                         },
@@ -439,6 +484,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 7,
                             ProductTypeId = 8,
+                            Id = 0,
                             OriginalPrice = 29.99m,
                             Price = 19.99m
                         },
@@ -446,6 +492,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 7,
                             ProductTypeId = 9,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 69.99m
                         },
@@ -453,6 +500,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 7,
                             ProductTypeId = 10,
+                            Id = 0,
                             OriginalPrice = 59.99m,
                             Price = 49.99m
                         },
@@ -460,6 +508,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 8,
                             ProductTypeId = 8,
+                            Id = 0,
                             OriginalPrice = 24.99m,
                             Price = 9.99m
                         },
@@ -467,6 +516,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 9,
                             ProductTypeId = 8,
+                            Id = 0,
                             OriginalPrice = 0m,
                             Price = 14.99m
                         },
@@ -474,6 +524,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 10,
                             ProductTypeId = 1,
+                            Id = 0,
                             OriginalPrice = 299m,
                             Price = 159.99m
                         },
@@ -481,6 +532,7 @@ namespace BlazorEcommerce.Data.Migrations
                         {
                             ProductId = 11,
                             ProductTypeId = 1,
+                            Id = 0,
                             OriginalPrice = 399m,
                             Price = 79.99m
                         });
@@ -492,14 +544,15 @@ namespace BlazorEcommerce.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("DataCreated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
@@ -511,7 +564,10 @@ namespace BlazorEcommerce.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("User");
+                    b.HasIndex(new[] { "Email" }, "IX_Users_Email_Unique")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("BlazorEcommerce.Shared.OrderItem", b =>
@@ -533,10 +589,6 @@ namespace BlazorEcommerce.Data.Migrations
                         .HasForeignKey("ProductTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("BlazorEcommerce.Shared.OrderItem", null)
-                        .WithMany("OrderItems")
-                        .HasForeignKey("OrderItemOrderId", "OrderItemProductId", "OrderItemProductTypeId");
 
                     b.Navigation("Order");
 
@@ -576,11 +628,6 @@ namespace BlazorEcommerce.Data.Migrations
                 });
 
             modelBuilder.Entity("BlazorEcommerce.Shared.Order", b =>
-                {
-                    b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("BlazorEcommerce.Shared.OrderItem", b =>
                 {
                     b.Navigation("OrderItems");
                 });
