@@ -21,6 +21,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BlazorEcommerce.Data\BlazorEcommerce.Data.csproj" />
     <ProjectReference Include="..\Client\BlazorEcommerce.Client.csproj" />
     <ProjectReference Include="..\Shared\BlazorEcommerce.Shared.csproj" />
   </ItemGroup>

@@ -1,3 +1,5 @@
+using BlazorEcommerce.Data.Data;
+
 namespace BlazorEcommerce.Server.Configuration
 {
     public static class DatabaseConfiguration

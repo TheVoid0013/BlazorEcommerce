@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace BlazorEcommerce.Server.Migrations
+namespace BlazorEcommerce.Data.Migrations
 {
     public partial class mig_2 : Migration
     {
