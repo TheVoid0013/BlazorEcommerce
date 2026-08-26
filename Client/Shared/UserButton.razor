@@ -2,14 +2,17 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject ICartService CartService
+
 <div class="dropdown">
-    <button @onclick="ToggleUserMenu" @onfocus="HideUserMenu" class="btn btn-secondary dropdown-toggle user-button"><i class="oi oi-person"></i></button>
-    <div class="dropdown-menu-end end-0 @UserMenuCssClass">
+    <button @onclick="ToggleUserMenu" @onfocus="HideUserMenu" class="btn btn-secondary dropdown-toggle user-button">
+        <i class="oi oi-person"></i>
+    </button>
+    <div class="dropdown-menu dropdown-menu-end @UserMenuCssClass">
         <AuthorizeView>
             <Authorized>
                 <a href="profile" class="dropdown-item">Profile</a>
-                <hr />
-                <button href="login" class="dropdown-item" @onclick="Logout">Logout</button>
+                <hr class="dropdown-divider" />
+                <button type="button" class="dropdown-item" @onclick="Logout">Logout</button>
             </Authorized>
             <NotAuthorized>
                 <a href="login?returnUrl=@NavigationManager.ToBaseRelativePath(NavigationManager.Uri)" class="dropdown-item">Login</a>
@@ -21,7 +24,8 @@
 
 @code {
     private bool showUserMenu = false;
-    private string UserMenuCssClass => showUserMenu ? "show-menu" : null;
+    private string? UserMenuCssClass => showUserMenu ? "show" : null;
+
     private void ToggleUserMenu()
     {
         showUserMenu = !showUserMenu;

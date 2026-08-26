@@ -4,44 +4,77 @@
 
 @if (product == null)
 {
-    <span>@message</span>
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">@message</div>
+    }
 }
 else
 {
-    <div class="media">
-        <div class="media-img-wrapper mr-2">
+    var variant = GetSelectedVariant();
+    <div class="media d-flex flex-wrap">
+        <div class="media-img-wrapper me-3">
             <img class="media-img" src="@product.ImageUrl" alt="@product.Title">
         </div>
         <div class="media-body">
             <h2 class="mb-0">@product.Title</h2>
-            <p>@product.Description</p>
+            <p class="text-muted">@product.Description</p>
+
             @if (product.Variants != null && product.Variants.Count > 1)
             {
                 <div class="mb-3">
+                    <label class="form-label">Options</label>
                     <select class="form-select" @bind="currentTypeId">
-                        @foreach (var variant in product.Variants)
+                        @foreach (var v in product.Variants)
                         {
-                            <option value="@variant.ProductTypeId">@variant.ProductType.Name</option>
+                            <option value="@v.ProductTypeId">@v.ProductType.Name</option>
                         }
                     </select>
                 </div>
             }
-            @if (GetSelectedVariant() != null)
+
+            @if (variant != null)
             {
-                @if (GetSelectedVariant().OriginalPrice > GetSelectedVariant().Price)
-                {
-                    <h6 class="text-muted original-price">
-                        $@GetSelectedVariant().OriginalPrice
-                    </h6>
-                }
-                <h4 class="price">
-                    $@GetSelectedVariant().Price
-                </h4>
+                <div class="mb-3">
+                    @if (variant.OriginalPrice > variant.Price)
+                    {
+                        <h6 class="text-muted original-price d-inline me-2">
+                            $@variant.OriginalPrice.ToString("F2")
+                        </h6>
+                        <span class="badge bg-danger align-middle">SALE</span>
+                    }
+                    <h4 class="price mb-0">
+                        $@variant.Price.ToString("F2")
+                    </h4>
+                </div>
             }
-            <button class="btn btn-primary" @onclick="AddToCart">
-                <i class="oi oi-cart"></i>&nbsp;&nbsp;&nbsp;Add to Cart
+
+            <button class="btn btn-primary" @onclick="AddToCart" disabled="@isAddingToCart">
+                @if (isAddingToCart)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                else
+                {
+                    <i class="oi oi-cart me-1"></i>
+                }
+                Add to Cart
             </button>
 
+            @if (addedToCart)
+            {
+                <div class="alert alert-success mt-3 py-2" role="alert">
+                    Added to cart!
+                </div>
+            }
         </div>
     </div>
 }
@@ -50,12 +83,17 @@ else
     private Product? product = null;
     private string message = string.Empty;
     private int currentTypeId = 1;
+    private bool isLoading = true;
+    private bool isAddingToCart = false;
+    private bool addedToCart = false;
 
     [Parameter]
     public int Id { get; set; }
 
-    protected async override Task OnParametersSetAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        isLoading = true;
+        addedToCart = false;
         message = "Loading Product...";
 
         var result = await ProductService.GetProduct(Id);
@@ -71,23 +109,29 @@ else
                 currentTypeId = product.Variants[0].ProductTypeId;
             }
         }
+        isLoading = false;
     }
+
     private ProductVariant GetSelectedVariant()
     {
-        var variant = product.Variants.FirstOrDefault(v => v.ProductTypeId == currentTypeId);
-        return variant;
+        return product?.Variants.FirstOrDefault(v => v.ProductTypeId == currentTypeId);
     }
 
     private async Task AddToCart()
     {
         var productVariant = GetSelectedVariant();
+        if (productVariant == null)
+            return;
+
+        isAddingToCart = true;
         var cartItem = new CartItem
-            {
-                ProductId = productVariant.ProductId,
-                ProductTypeId = productVariant.ProductTypeId
-            };
+        {
+            ProductId = productVariant.ProductId,
+            ProductTypeId = productVariant.ProductTypeId
+        };
 
-            await CartService.AddToCart(cartItem);
+        await CartService.AddToCart(cartItem);
+        isAddingToCart = false;
+        addedToCart = true;
     }
-
 }

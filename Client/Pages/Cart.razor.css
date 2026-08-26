@@ -1,6 +1,7 @@
-﻿.container {
+.container {
     display: flex;
-    padding: 6px;
+    align-items: center;
+    padding: 12px 6px;
 }
 
 .image-wrapper {
@@ -12,6 +13,7 @@
     max-height: 150px;
     max-width: 150px;
     padding: 6px;
+    object-fit: contain;
 }
 
 .name {
@@ -22,14 +24,13 @@
 .cart-product-price {
     font-weight: 600;
     text-align: right;
+    min-width: 90px;
 }
 
 .btn-delete {
-    background: none;
-    border: none;
-    padding: 0px;
     color: red;
     font-size: 12px;
+    text-decoration: none;
 }
 
     .btn-delete:hover {

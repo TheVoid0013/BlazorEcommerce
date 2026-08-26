@@ -8,38 +8,59 @@
 
 <PageTitle>Login</PageTitle>
 
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm mt-4">
+            <div class="card-body">
+                <h3 class="card-title mb-3"><i class="oi oi-account-login"></i> Login</h3>
 
-<h3>Login</h3>
+                <EditForm Model="user" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator></DataAnnotationsValidator>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <InputText id="email" @bind-Value="user.Email" class="form-control"></InputText>
+                        <ValidationMessage For="@(() => user.Email)"></ValidationMessage>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <InputText id="password" @bind-Value="user.Password" class="form-control" type="password"></InputText>
+                        <ValidationMessage For="@(() => user.Password)"></ValidationMessage>
+                    </div>
 
-<EditForm Model="user" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator></DataAnnotationsValidator>
-    <div class="mb-3">
-        <label for="email">Email</label>
-        <InputText id="email" @bind-Value="user.Email" class="form-control"></InputText>
-        <ValidationMessage For="@(() => user.Email)"></ValidationMessage>
+                    <button type="submit" class="btn btn-primary w-100" disabled="@isLoggingIn">
+                        @if (isLoggingIn)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Login
+                    </button>
+                </EditForm>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3 py-2 mb-0" role="alert">
+                        @errorMessage
+                    </div>
+                }
+
+                <div class="text-center mt-3">
+                    <small>Don't have an account? <a href="/register">Register here</a></small>
+                </div>
+            </div>
+        </div>
     </div>
-     <div class="mb-3">
-        <label for="password">Password</label>
-        <InputText id="password" @bind-Value="user.Password" class="form-control" type="password"></InputText>
-        <ValidationMessage For="@(() => user.Password)"></ValidationMessage>
-    </div>
-    <button type="submit" class="btn btn-primary">Login</button>
- </EditForm>
- <div class="text-danger">
-     <span>@errorMessage</span>
- </div>
+</div>
 
 @code {
     private UserLogin user = new UserLogin();
-
     private string errorMessage = string.Empty;
-
-    private string returnUrl = string.Empty;
+    private string returnUrl = "/";
+    private bool isLoggingIn = false;
 
     protected override void OnInitialized()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl",out var url))
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var url))
         {
             returnUrl = url;
         }
@@ -47,21 +68,22 @@
 
     private async Task HandleLogin()
     {
-        var result = await AuthService.Login(user);
-        if(result.Success)
-        {
-            errorMessage = string.Empty;
+        isLoggingIn = true;
+        errorMessage = string.Empty;
 
-            await LocalStorage.SetItemAsync("authToken",result.Data);
+        var result = await AuthService.Login(user);
+        if (result.Success)
+        {
+            await LocalStorage.SetItemAsync("authToken", result.Data);
             await AuthenticationStateProvider.GetAuthenticationStateAsync();
             await CartService.StoreCartItems(true);
             await CartService.GetCartItemsCount();
             NavigationManager.NavigateTo(returnUrl);
-
         }
         else
         {
             errorMessage = result.Message;
+            isLoggingIn = false;
         }
     }
 }

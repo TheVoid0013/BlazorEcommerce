@@ -2,47 +2,82 @@
 @inject ICartService CartService
 @inject IOrderService OrderService
 
-<PageTtitle>Shopping Cart</PageTtitle>
-<h3>Shopping Cart</h3>
+<PageTitle>Shopping Cart</PageTitle>
 
-@if (cartProducts == null || cartProducts.Count == 0)
+<h3 class="mb-4"><i class="oi oi-cart"></i> Shopping Cart</h3>
+
+@if (cartProducts == null)
 {
-    <span>@message</span>
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 }
 else if (orderPlaced)
 {
-    <span>Thank you for your order! You can check your orders <a href="orders">here</a></span>
+    <div class="alert alert-success" role="alert">
+        Thank you for your order! You can check your orders <a href="orders" class="alert-link">here</a>.
+    </div>
+}
+else if (cartProducts.Count == 0)
+{
+    <div class="alert alert-info" role="alert">
+        @message
+    </div>
 }
 else
 {
-    <div>
-        @foreach (var product in cartProducts)
-        {
-            <div class="container">
-                <div class="image-wrapper">
-                    <img src="@product.ImageUrl" class="image">
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            @foreach (var product in cartProducts)
+            {
+                <div class="container border-bottom">
+                    <div class="image-wrapper">
+                        <img src="@product.ImageUrl" class="image" alt="@product.Title" />
+                    </div>
+                    <div class="name">
+                        <h5 class="mb-1"><a href="/product/@product.ProductId" class="text-decoration-none">@product.Title</a></h5>
+                        <span class="badge bg-secondary mb-2">@product.ProductType</span><br />
+                        <div class="input-group input-group-sm mb-2" style="max-width:130px;">
+                            <input type="number"
+                                   value="@product.Quantity"
+                                   @onchange="@((ChangeEventArgs e) => UpdateQuantity(e, product))"
+                                   class="form-control input-quantity"
+                                   min="1" />
+                        </div>
+                        <button class="btn btn-link btn-delete p-0" @onclick="@(() => RemoveProductFromCart(product.ProductId, product.ProductTypeId))">
+                            <i class="oi oi-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div class="cart-product-price">
+                        $@((product.Price * product.Quantity).ToString("F2"))
+                    </div>
                 </div>
-                <div class="name">
-                    <h5><a href="/product/@product.ProductId">@product.Title</a></h5>
-                    <span>@product.ProductType</span><br />
-                    <input type="number" value="@product.Quantity" @onchange="@((ChangeEventArgs e)=>UpdateQuantity(e,product))" class="form-control input-quantity" min="1" />
-
-                    <button clasclass="btn-delete" @onclick="@(() => RemoveProductFromCart(product.ProductId,product.ProductTypeId))">Delete</button>
-                </div>
-                <div class="cart-product-price">$@(@product.Price * product.Quantity)</div>
+            }
+            <div class="cart-product-price p-3">
+                Total (@cartProducts.Count item@(cartProducts.Count == 1 ? "" : "s")):
+                <strong>$@(cartProducts.Sum(p => p.Price * p.Quantity).ToString("F2"))</strong>
             </div>
-        }
-        <div class="cart-product-price">
-            Total (@cartProducts.Count):$@cartProducts.Sum(product=>@product.Price * product.Quantity)
         </div>
     </div>
-    <button onclick="PlaceOrder" class="btn alert-success float-end mt-1">Place Order</button>
+
+    <div class="text-end mt-3">
+        <button @onclick="PlaceOrder" class="btn btn-success" disabled="@isPlacingOrder">
+            @if (isPlacingOrder)
+            {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Place Order
+        </button>
+    </div>
 }
 
 @code {
     List<CartProductResponse> cartProducts = null;
     string message = "Loading cart...";
     bool orderPlaced = false;
+    bool isPlacingOrder = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,26 +95,29 @@ else
     {
         await CartService.GetCartItemsCount();
         cartProducts = await CartService.GetCartProducts();
-        if (cartProducts == null || cartProducts.Count==0)
+        if (cartProducts == null || cartProducts.Count == 0)
         {
             message = "Your cart is empty";
         }
     }
 
-
     private async Task UpdateQuantity(ChangeEventArgs e, CartProductResponse product)
     {
-        product.Quantity = int.Parse(e.Value.ToString());
-        if (product.Quantity < 1)
-            product.Quantity = 1;
+        if (!int.TryParse(e.Value?.ToString(), out var quantity) || quantity < 1)
+        {
+            quantity = 1;
+        }
+        product.Quantity = quantity;
 
         await CartService.UpdateQuantity(product);
     }
 
-    private async Task PlcaOrder()
+    private async Task PlaceOrder()
     {
+        isPlacingOrder = true;
         await OrderService.PlaceOrder();
         await CartService.GetCartItemsCount();
         orderPlaced = true;
+        isPlacingOrder = false;
     }
 }

@@ -1,8 +1,4 @@
-﻿.show.-menu {
-    display: block;
-}
-
-.user-button {
+﻿.user-button {
     margin-left: .5em;
 }
 
@@ -11,5 +7,5 @@
 }
 
 .dropdown-item:hover {
-    background-color: white;
+    background-color: #f8f9fa;
 }

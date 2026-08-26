@@ -3,32 +3,37 @@
 @page "/{categoryUrl}"
 @inject IProductService ProductService
 
-<PageTitle>My Shop</PageTitle>
+<PageTitle>@PageTitleText</PageTitle>
 
 @if (SearchText == null && CategoryUrl == null)
 {
-    <FeaturedProducts/>
+    <FeaturedProducts />
 }
 else
 {
     <ProductList />
 }
 
-
-
-@code{
+@code {
     [Parameter]
     public string? CategoryUrl { get; set; } = null;
+
     [Parameter]
     public string? SearchText { get; set; } = null;
+
     [Parameter]
     public int Page { get; set; } = 1;
 
+    private string PageTitleText =>
+        SearchText != null ? $"Search: {SearchText} - My Shop" :
+        CategoryUrl != null ? $"{CategoryUrl} - My Shop" :
+        "My Shop";
+
     protected override async Task OnParametersSetAsync()
     {
-        if (SearchText !=null)
+        if (SearchText != null)
         {
-            await ProductService.SearchProducts(SearchText,Page);
+            await ProductService.SearchProducts(SearchText, Page);
         }
         else
         {

@@ -1,34 +1,47 @@
 ﻿@inject IProductService ProductService
 @implements IDisposable
 
-<center><h2>Top Products of Today</h2></center>
-@if (ProductService.Products == null || ProductService.Products.Count==0)
+<h2 class="text-center mb-4">Top Products of Today</h2>
+
+@if (ProductService.Products == null)
 {
-    <span>@ProductService.Message</span>
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (ProductService.Products.Count == 0)
+{
+    <div class="alert alert-info text-center" role="alert">@ProductService.Message</div>
 }
 else
 {
-    <div class="container">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
         @foreach (var product in ProductService.Products)
-       {
-           @if (product.Featured)
+        {
+            @if (product.Featured)
             {
-                <div class="featured-products">
-                    <div>
+                <div class="col">
+                    <div class="card h-100 featured-product-card">
                         <a href="product/@product.Id">
-                          <img src="@product.ImageUrl">  
+                            <img src="@product.ImageUrl" class="card-img-top featured-product-img" alt="@product.Title">
                         </a>
+                        <div class="card-body text-center">
+                            <h6 class="card-title mb-1">
+                                <a href="product/@product.Id" class="text-decoration-none text-dark">@product.Title</a>
+                            </h6>
+                            @if (product.Variants != null && product.Variants.Count > 0)
+                            {
+                                <p class="card-text fw-bold text-primary mb-0">
+                                    $@product.Variants[0].Price.ToString("F2")
+                                </p>
+                            }
+                        </div>
                     </div>
-                    <h4><a href="product/@product.Id">@product.Title</a></h4>
-                    @if (product.Variants != null && product.Variants.Count >0)
-                    {
-                        <h5 class="price">
-                            $@product.Variants[0].Price
-                        </h5>
-                    }
                 </div>
             }
-       }
+        }
     </div>
 }
 
@@ -42,5 +55,4 @@ else
     {
         ProductService.ProductsCahanged -= StateHasChanged;
     }
-
 }
