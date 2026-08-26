@@ -19,6 +19,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" />
+
+    <PackageReference Include="ZiggyCreatures.FusionCache" />
+    
+    
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlazorEcommerce.Data\BlazorEcommerce.Data.csproj" />
